@@ -1,4 +1,4 @@
-# Jangplen Music Library API -- Backend Only
+# Jangplen Music Library API -- Django Only
 
 This is a Django-based application managing a music library. It provides full CRUD operations (Create, Read, Update, Delete) for both **Libraries** and **Songs**, with an intuitive user interface and fully working backend logic.
 
