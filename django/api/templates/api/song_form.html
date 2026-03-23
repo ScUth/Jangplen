@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% if song %}Update{% else %}Upload{% endif %} Song</title>
+    <style>
+      body {font-family: Arial, sans-serif; padding: 20px; max-width: 760px; margin: auto;}
+      label {display: block; margin-top: 12px; font-weight: 600;}
+      input, textarea, select {width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px;}
+      button {margin-top: 14px; padding: 10px 16px; background: #0077cc; color: white; border: none; border-radius: 4px; cursor: pointer;}
+      .btn-secondary {background: #6c757d; margin-left: 8px;}
+      .message {margin: 12px 0; padding: 10px; border-radius: 4px;}
+      .success {background: #d4edda; color: #155724; border: 1px solid #c3e6cb;}
+      .error {background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;}
+      .current-file {margin-top: 4px; font-size: 14px; color: #666;}
+    </style>
+  </head>
+  <body>
+    <h1>{% if song %}Update{% else %}Upload a new{% endif %} song</h1>
+
+    {% if library %}
+    <div style="background: #e3f2fd; padding: 12px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #0077cc;">
+      <strong>📚 Library:</strong> <a href="{% url 'library_detail' library.pk %}" style="color: #0077cc;">{{ library.name }}</a>
+    </div>
+    {% endif %}
+
+    {% if success %}
+    <div class="message success">{{ success }}</div>
+    {% endif %}
+
+    {% if error %}
+    <div class="message error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      
+      <label for="id_library">Library</label>
+      <select id="id_library" name="library_id">
+        <option value="">None</option>
+        {% for lib in libraries %}
+          <option value="{{ lib.pk }}" {% if library and library.pk == lib.pk %}selected{% elif song and song.library and song.library.pk == lib.pk %}selected{% endif %}>{{ lib.name }}</option>
+        {% endfor %}
+      </select>
+
+      <label for="id_title">Title *</label>
+      <input type="text" id="id_title" name="title" value="{% if song %}{{ song.title }}{% endif %}" required />
+
+      <label for="id_file">Song file{% if not song %} *{% endif %}</label>
+      {% if song and song.file %}
+      <div class="current-file">Current file: {{ song.file.name }}</div>
+      {% endif %}
+      <input type="file" id="id_file" name="file" accept="audio/*" {% if not song %}required{% endif %} />
+
+      <label for="id_lyrics">Lyrics</label>
+      <textarea id="id_lyrics" name="lyrics" rows="4">{% if song %}{{ song.lyrics }}{% endif %}</textarea>
+
+      <label for="id_genre">Genre</label>
+      <input type="text" id="id_genre" name="genre" value="{% if song %}{{ song.genre }}{% endif %}" />
+
+      <label for="id_mood">Mood</label>
+      <input type="text" id="id_mood" name="mood" value="{% if song %}{{ song.mood }}{% endif %}" />
+
+      <label for="id_based_singer">Based singer</label>
+      <input type="text" id="id_based_singer" name="based_singer" value="{% if song %}{{ song.based_singer }}{% endif %}" />
+
+      <label for="id_description">Description</label>
+      <textarea id="id_description" name="description" rows="4">{% if song %}{{ song.description }}{% endif %}</textarea>
+
+      <button type="submit">{% if song %}Update{% else %}Upload{% endif %} Song</button>
+      {% if song %}
+      <a href="{% url 'song_detail' song.pk %}" class="btn btn-secondary">Cancel</a>
+      {% else %}
+      <a href="{% url 'song_form' %}" class="btn btn-secondary">Cancel</a>
+      {% endif %}
+    </form>
+
+    {% if song %}
+    <p><strong>Created:</strong> {{ song.created_at|date:"M d, Y H:i" }}</p>
+    {% endif %}
+  </body>
+</html>

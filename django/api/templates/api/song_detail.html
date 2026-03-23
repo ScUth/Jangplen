@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ song.title }}</title>
+    <style>
+      body {font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto;}
+      .song-header {border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 20px;}
+      .song-title {font-size: 28px; margin: 0 0 10px 0;}
+      .song-meta {color: #666; margin: 4px 0;}
+      .audio-player {width: 100%; max-width: 500px; margin: 20px 0;}
+      .lyrics {background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; white-space: pre-wrap;}
+      .btn {padding: 10px 16px; text-decoration: none; border-radius: 4px; margin-right: 8px; display: inline-block;}
+      .btn-primary {background: #0077cc; color: white;}
+      .btn-warning {background: #ffc107; color: black;}
+      .btn-danger {background: #dc3545; color: white;}
+      .btn-secondary {background: #6c757d; color: white;}
+      .actions {margin-top: 30px;}
+    </style>
+  </head>
+  <body>
+    <div class="song-header">
+      <h1 class="song-title">{{ song.title }}</h1>
+      <div class="song-meta">
+        {% if song.genre %}<strong>Genre:</strong> {{ song.genre }} | {% endif %}
+        {% if song.mood %}<strong>Mood:</strong> {{ song.mood }} | {% endif %}
+        {% if song.based_singer %}<strong>Singer:</strong> {{ song.based_singer %}{% endif %}
+      </div>
+      {% if song.description %}
+      <p><strong>Description:</strong> {{ song.description }}</p>
+      {% endif %}
+    </div>
+
+    {% if song.file %}
+    <h2>Listen</h2>
+    <audio class="audio-player" controls>
+      <source src="{{ song.file.url }}" type="audio/mpeg">
+      Your browser does not support the audio element.
+    </audio>
+    {% endif %}
+
+    {% if song.lyrics %}
+    <h2>Lyrics</h2>
+    <div class="lyrics">{{ song.lyrics }}</div>
+    {% endif %}
+
+    <div class="song-meta">
+      <p><strong>Assessment:</strong> {{ song.get_assessment_display }}</p>
+      <p><strong>Created:</strong> {{ song.created_at|date:"M d, Y H:i" }}</p>
+      {% if song.library %}
+      <p><strong>Library:</strong> <a href="{% url 'library_detail' song.library.pk %}">{{ song.library.name }}</a></p>
+      {% endif %}
+    </div>
+
+    <div class="actions">
+      <a href="{% url 'song_update' song.pk %}" class="btn btn-warning">Edit Song</a>
+      <a href="{% url 'song_delete' song.pk %}" class="btn btn-danger">Delete Song</a>
+      {% if song.library %}
+      <a href="{% url 'library_detail' song.library.pk %}" class="btn btn-secondary">Back to Library</a>
+      {% else %}
+      <a href="{% url 'song_form' %}" class="btn btn-secondary">Back to Songs</a>
+      {% endif %}
+    </div>
+  </body>
+</html>
