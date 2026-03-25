@@ -2,6 +2,85 @@
 
 This is a Django-based application managing a music library. It provides full CRUD operations (Create, Read, Update, Delete) for both **Libraries** and **Songs**, with an intuitive user interface and fully working backend logic.
 
+## Local Setup
+
+### Prerequisites
+- Python 3.8 or higher
+- pip (Python package installer)
+
+### Installation Steps
+
+1. **Clone the repository** (if not already done):
+   ```bash
+   git clone <repository-url>
+   cd jangplen
+   ```
+
+2. **Navigate to the Django project**:
+   ```bash
+   cd django
+   ```
+
+3. **Create a virtual environment**:
+   ```bash
+   python -m venv .venv
+   ```
+
+4. **Activate the virtual environment**:
+   - On Linux/Mac:
+     ```bash
+     source .venv/bin/activate
+     ```
+   - On Windows:
+     ```bash
+     .venv\Scripts\activate
+     ```
+
+5. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+6. **Run database migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+
+7. **Start the development server**:
+   ```bash
+   python manage.py runserver
+   ```
+
+8. **Access the application**:
+   Open your browser and go to `http://localhost:8000/libraries/` to see the application in action.
+
+### Additional Notes
+- The project uses SQLite as the default database, so no additional database setup is required.
+- Media files (uploaded songs) are stored in the `media/songs/` directory.
+- For production deployment, make sure to configure proper settings in `core/settings.py`.
+
+## Next.js Frontend Setup (Optional)
+
+If you also want to run the Next.js frontend:
+
+1. **Navigate to the Next.js project**:
+   ```bash
+   cd ../nextjs
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Access the frontend**:
+   Open your browser and go to `http://localhost:3000`.
+
 ## Features & CRUD Evidence
 
 Here is the breakdown of the CRUD operations available in this project:
