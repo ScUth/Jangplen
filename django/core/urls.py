@@ -19,24 +19,25 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
-from api import views
+from api.views import song
+from api.views import library
 
 router = DefaultRouter()
-router.register(r'songs', views.SongViewSet)
-router.register(r'libraries', views.LibraryViewSet)
+router.register(r'songs', song.SongViewSet)
+router.register(r'libraries', library.LibraryViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
-    path('song-form/', views.song_form, name='song_form'),
-    path('libraries/', views.library_list, name='library_list'),
-    path('libraries/<int:pk>/', views.library_detail, name='library_detail'),
-    path('libraries/create/', views.library_create, name='library_create'),
-    path('libraries/<int:pk>/update/', views.library_update, name='library_update'),
-    path('libraries/<int:pk>/delete/', views.library_delete, name='library_delete'),
-    path('songs/<int:pk>/', views.song_detail, name='song_detail'),
-    path('songs/<int:pk>/update/', views.song_update, name='song_update'),
-    path('songs/<int:pk>/delete/', views.song_delete, name='song_delete'),
+    path('song-form/', song.song_form, name='song_form'),
+    path('libraries/', library.library_list, name='library_list'),
+    path('libraries/<int:pk>/', library.library_detail, name='library_detail'),
+    path('libraries/create/', library.library_create, name='library_create'),
+    path('libraries/<int:pk>/update/', library.library_update, name='library_update'),
+    path('libraries/<int:pk>/delete/', library.library_delete, name='library_delete'),
+    path('songs/<int:pk>/', song.song_detail, name='song_detail'),
+    path('songs/<int:pk>/update/', song.song_update, name='song_update'),
+    path('songs/<int:pk>/delete/', song.song_delete, name='song_delete'),
 ]
 
 # Serve media files during development
