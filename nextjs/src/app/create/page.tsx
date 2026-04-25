@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { MOCK_PROMPTS } from "@/lib/mockData";
+import { API_BASE_URL } from "@/lib/constants";
 
 const POLL_INTERVAL_MS = 5000;
 const TIMEOUT_MINUTES = 10;
-const API = "http://localhost:8000";
+const API = API_BASE_URL;
 
 type GenStatus =
   | "idle" | "submitting" | "PENDING"

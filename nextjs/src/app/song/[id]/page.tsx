@@ -4,8 +4,9 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { MOCK_LIBRARY } from "@/lib/mockData";
 import { usePlayer, Song } from "@/components/PlayerContext";
+import { API_BASE_URL } from "@/lib/constants";
 
-const API = "http://localhost:8000";
+const API = API_BASE_URL;
 
 interface BackendSong {
   id: number;

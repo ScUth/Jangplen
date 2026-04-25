@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "@/lib/constants";
 
 interface User {
   id: number;
@@ -30,7 +31,7 @@ export default function Navbar() {
         }
 
         // Fetch user data from backend
-        const res = await fetch("http://localhost:8000/api/auth/user/", {
+        const res = await fetch(`${API_BASE_URL}/api/auth/user/`, {
           method: "GET",
           headers: {
             "Authorization": `Token ${token}`,

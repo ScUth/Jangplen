@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePlayer } from "@/components/PlayerContext";
 import type { Song } from "@/components/PlayerContext";
+import { API_BASE_URL } from "@/lib/constants";
 
-const API = "http://localhost:8000";
+const API = API_BASE_URL;
 
 interface BackendSong {
   id: number;

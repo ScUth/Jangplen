@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { API_BASE_URL } from "@/lib/constants";
 
 export default function Register() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function Register() {
     setError("");
     
     try {
-      const res = await fetch("http://localhost:8000/api/auth/register/", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

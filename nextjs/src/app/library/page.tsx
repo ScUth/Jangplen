@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { API_BASE_URL } from "@/lib/constants";
 
-const API = "http://localhost:8000";
+const API = API_BASE_URL;
 
 interface Library {
   id: number;
