@@ -16,6 +16,8 @@ from api.models.admin_user import Admin
 from api.serializer import SongSerializer, LibrarySerializer
 
 # Create your views here.
+
+
 class SongViewSet(viewsets.ModelViewSet):
     queryset = Song.objects.all()
     serializer_class = SongSerializer
@@ -41,7 +43,8 @@ class SongViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -51,7 +54,8 @@ class SongViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
+
 def song_detail(request, pk):
     try:
         song = Song.objects.get(pk=pk)
@@ -86,7 +90,7 @@ def song_update(request, pk):
             song.mood = mood
             song.based_singer = based_singer
             song.description = description
-            
+
             if library_id:
                 try:
                     song.library = Library.objects.get(pk=library_id)
@@ -98,7 +102,7 @@ def song_update(request, pk):
             if file:
                 song.file = file
             song.save()
-            
+
             if song.library:
                 return redirect('library_detail', pk=song.library.pk)
             else:
@@ -131,17 +135,18 @@ def song_delete(request, pk):
 def song_form(request, pk=None):
     context = {}
     library = None
-    library_id = request.GET.get('library_id') or request.POST.get('library_id')
-    
+    library_id = request.GET.get(
+        'library_id') or request.POST.get('library_id')
+
     if library_id:
         try:
             library = Library.objects.get(pk=library_id)
             context['library'] = library
         except Library.DoesNotExist:
             context['error'] = 'Library not found.'
-            
+
     context['libraries'] = Library.objects.all()
-    
+
     if request.method == 'POST':
         title = request.POST.get('title', '').strip()
         lyrics = request.POST.get('lyrics', '').strip()
@@ -166,7 +171,7 @@ def song_form(request, pk=None):
             if file:
                 song.file = file
             song.save()
-            
+
             # Redirect to library detail if library was specified
             if library:
                 return redirect('library_detail', pk=library.pk)

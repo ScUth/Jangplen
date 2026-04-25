@@ -7,6 +7,8 @@ from .song_generation import SongGeneration
 class Song(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to='songs/', blank=True, null=True)
+    audio_url = models.URLField(max_length=1024, blank=True, null=True)
+    thumbnail_url = models.URLField(max_length=1024, blank=True, null=True)
     lyrics = models.TextField(blank=True)
     genre = models.CharField(max_length=100, blank=True)
     mood = models.CharField(max_length=100, blank=True)
