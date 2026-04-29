@@ -18,6 +18,7 @@ interface BackendSong {
   genre: string;
   mood: string;
   description: string;
+  is_public?: boolean;
 }
 
 interface LibraryDetail {
@@ -58,6 +59,42 @@ export default function LibraryDetailPage() {
   const [lib, setLib] = useState<LibraryDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; show: boolean }>({ message: "", show: false });
+
+  const showToast = (message: string) => {
+    setToast({ message, show: true });
+    setTimeout(() => setToast({ message: "", show: false }), 3000);
+  };
+
+  const togglePublic = async (songId: number, currentStatus: boolean) => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${API}/api/songs/${songId}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`,
+        },
+        body: JSON.stringify({ is_public: !currentStatus }),
+      });
+      if (res.ok) {
+        setLib((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            songs: prev.songs.map((s) =>
+              s.id === songId ? { ...s, is_public: !currentStatus } : s
+            ),
+          };
+        });
+        showToast(`Song is now ${!currentStatus ? "Public" : "Private"}`);
+      } else {
+        showToast("Failed to update song status");
+      }
+    } catch (err) {
+      showToast("Error updating song status");
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -184,6 +221,11 @@ export default function LibraryDetailPage() {
                     </div>
                   )}
 
+                  {/* Public/Private Badge */}
+                  <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider border border-white/10 z-10">
+                    {song.is_public ? "Public" : "Private"}
+                  </div>
+
                   {/* Play overlay */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
                     <button
@@ -238,12 +280,23 @@ export default function LibraryDetailPage() {
                       onClick={() => {
                         const link = `${window.location.origin}/song/${song.id}`;
                         navigator.clipboard.writeText(link);
-                        alert(`Link copied to clipboard: ${link}`);
+                        showToast(`Link copied: ${link}`);
                       }}
                       className="p-1.5 text-text-muted hover:text-white hover:bg-white/10 rounded-full transition"
                       title="Share"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                    </button>
+                    <button
+                      onClick={() => togglePublic(song.id, !!song.is_public)}
+                      className="p-1.5 text-text-muted hover:text-white hover:bg-white/10 rounded-full transition"
+                      title={song.is_public ? "Make Private" : "Make Public"}
+                    >
+                      {song.is_public ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                      )}
                     </button>
                   </div>
                   <button
@@ -265,6 +318,13 @@ export default function LibraryDetailPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-24 right-8 bg-brand-600 text-white px-6 py-3 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.4)] animate-fade-in z-50 font-medium">
+          {toast.message}
         </div>
       )}
     </div>

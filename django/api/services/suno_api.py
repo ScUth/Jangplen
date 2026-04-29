@@ -1,4 +1,8 @@
 import requests
+import abc
+import time
+import uuid
+import os
 from django.conf import settings
 
 SUNO_API_BASE = "https://api.sunoapi.org"
@@ -26,10 +30,6 @@ class SunoTimeoutError(SunoAPIError):
     """Raised when a generation task exceeds the 10-minute limit."""
     pass
 
-
-import abc
-import time
-import uuid
 
 class SunoServiceStrategy(abc.ABC):
     @abc.abstractmethod
@@ -76,10 +76,12 @@ class SunoServiceStrategy(abc.ABC):
 
 MOCK_TASKS = {}
 
+
 class MockSunoService(SunoServiceStrategy):
     """
     Mock service that simulates the Suno API locally, returning a local audio file.
     """
+
     def generate_song(
         self,
         prompt: str,
@@ -105,9 +107,9 @@ class MockSunoService(SunoServiceStrategy):
         task = MOCK_TASKS.get(task_id)
         if not task:
             return {"status": "FAILED", "errorMessage": "Mock task not found"}
-        
+
         elapsed = time.time() - task["created_at"]
-        
+
         if elapsed < 2:
             status = "PENDING"
         elif elapsed < 4:
@@ -116,7 +118,7 @@ class MockSunoService(SunoServiceStrategy):
             status = "FIRST_SUCCESS"
         else:
             status = "SUCCESS"
-            
+
         if status == "SUCCESS":
             return {
                 "status": status,
@@ -150,11 +152,11 @@ class MockSunoService(SunoServiceStrategy):
         task = MOCK_TASKS.get(task_id)
         if not task:
             return {"status": "FAILED", "errorMessage": "Mock task not found"}
-        
+
         elapsed = time.time() - task["created_at"]
         if elapsed < 2:
             return {"status": "PENDING"}
-        
+
         return {
             "status": "SUCCESS",
             "data": {
@@ -162,6 +164,7 @@ class MockSunoService(SunoServiceStrategy):
                 "title": "Mock Generated Title"
             }
         }
+
 
 class SunoService(SunoServiceStrategy):
     """
@@ -218,7 +221,8 @@ class SunoService(SunoServiceStrategy):
 
         if custom_mode:
             if not style or not title:
-                raise SunoAPIError("style and title are required when customMode is True.")
+                raise SunoAPIError(
+                    "style and title are required when customMode is True.")
             payload["style"] = style
             payload["title"] = title
 
@@ -246,11 +250,13 @@ class SunoService(SunoServiceStrategy):
             )
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
-            raise SunoAPIError(f"Failed to submit generation request: {exc}") from exc
+            raise SunoAPIError(
+                f"Failed to submit generation request: {exc}") from exc
 
         result = response.json()
         if result.get("code") != 200:
-            raise SunoAPIError(f"Suno API error: {result.get('msg', 'Unknown error')}")
+            raise SunoAPIError(
+                f"Suno API error: {result.get('msg', 'Unknown error')}")
 
         task_id = result.get("data", {}).get("taskId")
         if not task_id:
@@ -285,7 +291,8 @@ class SunoService(SunoServiceStrategy):
 
         result = response.json()
         if result.get("code") != 200:
-            raise SunoAPIError(f"Suno API error: {result.get('msg', 'Unknown error')}")
+            raise SunoAPIError(
+                f"Suno API error: {result.get('msg', 'Unknown error')}")
 
         return result.get("data", {})
 
@@ -308,18 +315,21 @@ class SunoService(SunoServiceStrategy):
             )
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
-            raise SunoAPIError(f"Failed to submit lyrics request: {exc}") from exc
+            raise SunoAPIError(
+                f"Failed to submit lyrics request: {exc}") from exc
 
         result = response.json()
         if result.get("code") != 200:
-            raise SunoAPIError(f"Suno API error: {result.get('msg', 'Unknown error')}")
+            raise SunoAPIError(
+                f"Suno API error: {result.get('msg', 'Unknown error')}")
 
         task_id = result.get("data", {}).get("taskId")
         if not task_id:
             # Some wrappers return ID directly
             task_id = result.get("data", {}).get("id")
             if not task_id:
-                raise SunoAPIError("Suno API did not return a taskId for lyrics.")
+                raise SunoAPIError(
+                    "Suno API did not return a taskId for lyrics.")
 
         return task_id
 
@@ -337,11 +347,35 @@ class SunoService(SunoServiceStrategy):
             )
             response.raise_for_status()
         except requests.exceptions.RequestException as exc:
-            raise SunoAPIError(f"Failed to fetch lyrics status: {exc}") from exc
+            raise SunoAPIError(
+                f"Failed to fetch lyrics status: {exc}") from exc
 
         result = response.json()
         if result.get("code") != 200:
-            raise SunoAPIError(f"Suno API error: {result.get('msg', 'Unknown error')}")
+            raise SunoAPIError(
+                f"Suno API error: {result.get('msg', 'Unknown error')}")
 
         return result.get("data", {})
 
+
+def get_suno_service(strategy: str = None) -> SunoServiceStrategy:
+    """
+    Factory function to return the appropriate SunoServiceStrategy.
+    If strategy is None, it falls back to the SUNO_STRATEGY environment variable
+    (or USE_MOCK for backward compatibility), and defaults to "suno".
+    """
+    if strategy is None:
+        strategy = os.environ.get("SUNO_STRATEGY")
+        if strategy is None:
+            # Fallback to USE_MOCK if SUNO_STRATEGY is not set
+            use_mock = os.environ.get("USE_MOCK", "false").lower()
+            strategy = "mock" if use_mock in ("true", "1", "yes") else "suno"
+
+    strategy = str(strategy).lower()
+
+    if strategy in ("mock", "true", "1"):
+        return MockSunoService()
+    elif strategy == "suno":
+        return SunoService()
+    else:
+        raise ValueError(f"Unknown Suno strategy: {strategy}")

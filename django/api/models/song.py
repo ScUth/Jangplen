@@ -15,6 +15,7 @@ class Song(models.Model):
     based_singer = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    is_public = models.BooleanField(default=False)
 
     assessment = models.CharField(
         max_length=20,

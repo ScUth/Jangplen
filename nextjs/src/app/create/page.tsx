@@ -267,7 +267,7 @@ export default function CreateSong() {
   const [formData, setFormData] = useState({
     title: "", genre: "", mood: "", singer: "", description: "", lyrics: "",
   });
-  const [useMock, setUseMock] = useState(false);
+  const [strategy, setStrategy] = useState<"suno" | "mock">("suno");
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [libraries, setLibraries] = useState<Library[]>([]);
   const [selectedLibraryId, setSelectedLibraryId] = useState<string | number>("");
@@ -326,7 +326,7 @@ export default function CreateSong() {
       prompt: formData.lyrics.trim() || formData.description.trim(),
       custom_mode: !!hasCustom,
       instrumental: !formData.lyrics.trim() && !formData.description.trim(),
-      use_mock: useMock,
+      strategy: strategy,
     };
     if (hasCustom) {
       payload.style = [formData.genre, formData.mood, formData.singer].filter(Boolean).join(", ");
@@ -437,7 +437,7 @@ export default function CreateSong() {
           onDiscard={() => { setFinishedSongs(null); setGenStatus("idle"); }}
           defaultLibraryId={selectedLibraryId}
           allLibraries={libraries}
-          isMockMode={useMock}
+          isMockMode={strategy === "mock"}
         />
       )}
 
@@ -452,15 +452,15 @@ export default function CreateSong() {
           <div className="flex items-center gap-3 bg-black/30 p-1.5 rounded-full border border-white/10 self-start md:self-auto">
             <button
               type="button"
-              onClick={() => setUseMock(false)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${!useMock ? 'bg-brand-600 text-white shadow-lg' : 'text-text-muted hover:text-white'}`}
+              onClick={() => setStrategy("suno")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${strategy === "suno" ? 'bg-brand-600 text-white shadow-lg' : 'text-text-muted hover:text-white'}`}
             >
               Real AI
             </button>
             <button
               type="button"
-              onClick={() => setUseMock(true)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition ${useMock ? 'bg-brand-600 text-white shadow-lg' : 'text-text-muted hover:text-white'}`}
+              onClick={() => setStrategy("mock")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition ${strategy === "mock" ? 'bg-brand-600 text-white shadow-lg' : 'text-text-muted hover:text-white'}`}
             >
               Mock Mode
             </button>

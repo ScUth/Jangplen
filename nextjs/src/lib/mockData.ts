@@ -9,7 +9,7 @@ export interface LibraryData {
 
 export const MOCK_LIBRARY: Song[] = [
   {
-    id: "1",
+    id: "mock-1",
     title: "Neon Dreams",
     artist: "AI Creator",
     thumbnail: "https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&q=80",
@@ -20,7 +20,7 @@ export const MOCK_LIBRARY: Song[] = [
     description: "A fast-paced synthwave track with heavy bass."
   },
   {
-    id: "2",
+    id: "mock-2",
     title: "Midnight Rain",
     artist: "AI Creator",
     thumbnail: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=500&q=80",
@@ -31,7 +31,7 @@ export const MOCK_LIBRARY: Song[] = [
     description: "Relaxing lo-fi beats to study to."
   },
   {
-    id: "3",
+    id: "mock-3",
     title: "Solar Flare",
     artist: "AI Creator",
     thumbnail: "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=500&q=80",

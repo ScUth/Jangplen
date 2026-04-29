@@ -25,8 +25,10 @@ class SongViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Song.objects.all()
-        # Add filtering logic if needed
-        return queryset
+        if self.request.user.is_authenticated:
+            return queryset.filter(Q(is_public=True) | Q(library__owner=self.request.user))
+        else:
+            return queryset.filter(is_public=True)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

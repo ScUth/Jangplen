@@ -63,7 +63,40 @@ You must create .env file from .env.example
 - Media files (uploaded songs) are stored in the `media/songs/` directory.
 - For production deployment, make sure to configure proper settings in `core/settings.py`.
 
-## Next.js Frontend Setup (Optional)
+## Outsource API instruction
+### Google OAuth 2.0
+1. Go to the [API Console](https://console.developers.google.com/).
+2. From the projects list, select a project or create a new one.
+3. If the APIs & services page isn't already open, open the console left side menu and select **APIs & services**.
+4. On the left, click **Credentials**.
+5. Click **New Credentials**, then select **OAuth client ID**.
+6. Select the appropriate application type for your project and enter any additional information required. Application types are described in more detail in the following sections.
+7. If this is your first time creating a client ID, you can also configure your consent screen by clicking **Consent Screen**. (The [following procedure](https://support.google.com/googleapi/answer/6158849?hl=en#userconsent) explains how to set up the Consent screen.) You won't be prompted to configure the consent screen after you do it the first time.
+8. Click **Create client ID**
+
+*Note: this setting up is from https://support.google.com/googleapi/answer/6158849?hl=en if you need more information about Google OAuth 2.0 you can look at this page https://developers.google.com/identity/protocols/oauth2*
+### OpenAI
+1. Go to the https://platform.openai.com/home
+2. Sign Up and click <u>Create API Key</u>
+3. Fill the information and hit **Create secret key**
+
+## Where to put the API key
+You can edited the API key on the `/jangplen/django/.env` and `/jangplen/nextjs/.env.local` or if you doesn't have `.env` file from that direction you can use this command
+
+For `.env`
+```bash
+cp .env.example .env # Unix or powershell
+# or
+copy .env.example .env # cmd (Windows)
+```
+For `.env.local`
+```bash
+cp .env.example .env.local # Unix or powershell
+# or
+copy .env.example .env.local # cmd (Windows)
+```
+
+## Next.js Frontend Setup
 
 If you also want to run the Next.js frontend:
 
@@ -174,22 +207,6 @@ python manage.py runserver
 
 <img src="Screenshot_20260425_215711.png">
 
-## Where to put the API key
-You can edited the API key on the `/jangplen/django/.env` and `/jangplen/nextjs/.env.local` or if you doesn't have `.env` file from that direction you can use this command
-
-For `.env`
-```bash
-cp .env.example .env # Unix or powershell
-# or
-copy .env.example .env # cmd (Windows)
-```
-For `.env.local`
-```bash
-cp .env.example .env.local # Unix or powershell
-# or
-copy .env.example .env.local # cmd (Windows)
-```
-
 then you must put your `SUNO_API_KEY` and `OPENAI_API_KEY` and `GOOGLE_CLIENT_ID` on the `.env` file.
 
 ## Minimal demonstration
@@ -239,6 +256,11 @@ classDiagram
         +get_lyrics(task_id) dict
     }
 
+    class SunoFactory {
+        <<module: suno_api>>
+        +get_suno_service(strategy) SunoServiceStrategy
+    }
+
     class ModerationService {
         +is_appropriate(text) bool
     }
@@ -257,10 +279,11 @@ classDiagram
 
     SunoServiceStrategy <|-- SunoService : implements
     SunoServiceStrategy <|-- MockSunoService : implements
-    GenerateSongAPI --> SunoServiceStrategy : uses
-    GenerateLyricsAPI --> SunoServiceStrategy : uses
+    SunoFactory --> SunoServiceStrategy : returns
+    GenerateSongAPI --> SunoFactory : uses
+    GenerateLyricsAPI --> SunoFactory : uses
     GenerateLyricsAPI --> ModerationService : uses
-    SongStatusAPI --> SunoServiceStrategy : uses
+    SongStatusAPI --> SunoFactory : uses
 ```
 
 ### Sequence Diagram
@@ -271,15 +294,17 @@ The following sequence diagram outlines the process of generating a song and sav
 sequenceDiagram
     actor Client
     participant API as Django API (GenerateSongAPI)
+    participant Factory as Factory (get_suno_service)
     participant StatusAPI as Django API (SongStatusAPI)
     participant Strategy as SunoServiceStrategy<br/>(Mock or Live)
     participant Provider as External API (Suno) / Mock DB
 
-    Client->>API: POST /api/suno/generate/ {prompt, use_mock}
-    alt use_mock is true
-        API->>Strategy: instantiate MockSunoService
-    else use_mock is false
-        API->>Strategy: instantiate SunoService
+    Client->>API: POST /api/suno/generate/ {prompt, strategy}
+    API->>Factory: call get_suno_service(strategy)
+    alt strategy is mock
+        Factory-->>API: returns MockSunoService
+    else strategy is suno
+        Factory-->>API: returns SunoService
     end
     API->>Strategy: generate_song(prompt)
     
@@ -295,6 +320,8 @@ sequenceDiagram
 
     loop Polling (Every few seconds)
         Client->>StatusAPI: GET /api/suno/status/{task_id}/
+        StatusAPI->>Factory: call get_suno_service(derived_strategy)
+        Factory-->>StatusAPI: returns Strategy instance
         StatusAPI->>Strategy: get_task_status(task_id)
         
         alt is SunoService

@@ -40,6 +40,12 @@ export default function SongDetail({ params }: { params: Promise<{ id: string }>
   
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<{ message: string; show: boolean }>({ message: "", show: false });
+
+  const showToast = (message: string) => {
+    setToast({ message, show: true });
+    setTimeout(() => setToast({ message: "", show: false }), 3000);
+  };
 
   useEffect(() => {
     // Try to fetch from backend first, which does not require authentication
@@ -106,7 +112,7 @@ export default function SongDetail({ params }: { params: Promise<{ id: string }>
   const handleShare = () => {
     const link = window.location.href;
     navigator.clipboard.writeText(link);
-    alert(`Link copied to clipboard: ${link}`);
+    showToast(`Link copied: ${link}`);
   };
 
   return (
@@ -174,6 +180,13 @@ export default function SongDetail({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-24 right-8 bg-brand-600 text-white px-6 py-3 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.4)] animate-fade-in z-50 font-medium">
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

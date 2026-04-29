@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from api.models.library import Library
 from api.models.song import Song
 from api.serializer import SongSerializer, LibrarySerializer, LibraryWithSongsSerializer
-from api.services.suno_api import SunoAPIError, SunoService, MockSunoService
+from api.services.suno_api import SunoAPIError, get_suno_service
 from api.services.moderation_service import ModerationService
 
 # 10-minute absolute timeout (seconds)
@@ -89,13 +89,14 @@ class GenerateSongAPI(generics.GenericAPIView):
         model = request.data.get("model", "V4_5ALL")
         negative_tags = request.data.get("negative_tags", "")
         vocal_gender = request.data.get("vocal_gender", "")
-        use_mock = request.data.get("use_mock", False)
+        use_mock = request.data.get("use_mock", None)
+        strategy = request.data.get("strategy", None)
+
+        if strategy is None and use_mock is not None:
+            strategy = "mock" if use_mock else "suno"
 
         try:
-            if use_mock:
-                suno = MockSunoService()
-            else:
-                suno = SunoService()
+            suno = get_suno_service(strategy)
             task_id = suno.generate_song(
                 prompt=prompt,
                 custom_mode=custom_mode,
@@ -157,10 +158,8 @@ class SongStatusAPI(generics.GenericAPIView):
                 pass
 
         try:
-            if task_id.startswith("mock-"):
-                suno = MockSunoService()
-            else:
-                suno = SunoService()
+            strategy = "mock" if task_id.startswith("mock-") else None
+            suno = get_suno_service(strategy)
             task_data = suno.get_task_status(task_id)
         except SunoAPIError as exc:
             raise ValidationError(str(exc))
@@ -307,13 +306,14 @@ class GenerateLyricsAPI(generics.GenericAPIView):
         if not moderator.is_appropriate(prompt):
             raise ValidationError("Prompt contains inappropriate content.")
 
-        use_mock = request.data.get("use_mock", False)
+        use_mock = request.data.get("use_mock", None)
+        strategy = request.data.get("strategy", None)
+
+        if strategy is None and use_mock is not None:
+            strategy = "mock" if use_mock else "suno"
 
         try:
-            if use_mock:
-                suno = MockSunoService()
-            else:
-                suno = SunoService()
+            suno = get_suno_service(strategy)
             task_id = suno.generate_lyrics(prompt=prompt)
         except SunoAPIError as exc:
             raise ValidationError(str(exc))
@@ -335,13 +335,8 @@ class LyricsStatusAPI(generics.GenericAPIView):
 
     def get(self, request, task_id, *args, **kwargs):
         try:
-            if task_id.startswith("mock-lyrics-"):
-                suno = MockSunoService()
-            elif task_id.startswith("mock-"):
-                # fallback for testing
-                suno = MockSunoService()
-            else:
-                suno = SunoService()
+            strategy = "mock" if task_id.startswith("mock-") else None
+            suno = get_suno_service(strategy)
             task_data = suno.get_lyrics(task_id)
         except SunoAPIError as exc:
             raise ValidationError(str(exc))
